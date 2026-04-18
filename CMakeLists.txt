@@ -42,6 +42,8 @@ else()
     endif()
 endif()
 
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS  SerialPort)
 target_link_libraries(QT_Dashboard PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets

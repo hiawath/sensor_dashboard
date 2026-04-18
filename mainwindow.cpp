@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include <QMessageBox>
+#include <QEvent>
+#include <QMouseEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -9,11 +11,20 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     serial = new QSerialPort(this);
 
+    // Minimize, Maximize 버튼 제거
+    setWindowFlags(windowFlags() & ~Qt::WindowMinimizeButtonHint & ~Qt::WindowMaximizeButtonHint& ~Qt::WindowContextHelpButtonHint);
+    // 타이틀 바와 테두리를 완전히 제거
+    //setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+
     setupDynamicUI();
     applyStyles();
 
     this->setProperty("theme", "white");
     ui->initBtn->setProperty("connected", false);
+
+    // 아이콘 클릭 감지를 위해 이벤트 필터 설치
+    ui->iconSettings->installEventFilter(this);
+    ui->iconPower->installEventFilter(this);
 
     connect(ui->initBtn, &QPushButton::clicked, this, &MainWindow::onInitializeClicked);
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::readData);
@@ -275,5 +286,22 @@ void MainWindow::parseProtocol(const QString &data) {
             ui->tgl1_sym->style()->unpolish(ui->tgl1_sym);
             ui->tgl1_sym->style()->polish(ui->tgl1_sym);
         }
+    }
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
+    if ((obj == ui->iconSettings || obj == ui->iconPower) && event->type() == QEvent::MouseButtonRelease) {
+        onExitRequested();
+        return true;
+    }
+    return QMainWindow::eventFilter(obj, event);
+}
+
+void MainWindow::onExitRequested() {
+    QMessageBox::StandardButton res = QMessageBox::question(this, "프로그램 종료", 
+                                                            "프로그램을 종료하시겠습니까?", 
+                                                            QMessageBox::Yes | QMessageBox::No);
+    if (res == QMessageBox::Yes) {
+        this->close();
     }
 }
