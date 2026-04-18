@@ -20,14 +20,14 @@ public:
     ~MainWindow();
 
 private slots:
-
-    void on_btnRead_clicked();
+    void onInitializeClicked();
     void readData();
 
 private:
+    void applyStyles();
+    void setupDynamicUI();
+
     Ui::MainWindow *ui;
     QSerialPort *serial;
-    QTextBrowser *textBrowser;
-
 };
 #endif // MAINWINDOW_H

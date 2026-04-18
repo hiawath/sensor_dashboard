@@ -6,48 +6,552 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>580</width>
-    <height>410</height>
+    <width>1024</width>
+    <height>768</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>MainWindow</string>
-  </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="verticalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>110</x>
-      <y>20</y>
-      <width>361</width>
-      <height>291</height>
-     </rect>
+   <layout class="QVBoxLayout" name="mainLayout">
+    <property name="spacing">
+     <number>0</number>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QTextBrowser" name="textBrowser"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnRead">
-       <property name="text">
-        <string>Click Me!</string>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="topBar">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>60</height>
+       </size>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="topTitle">
+         <property name="text">
+          <string>SERIAL_CORE_V1</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="navSystem">
+         <property name="text">
+          <string>SYSTEM</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="navTerminal">
+         <property name="text">
+          <string>TERMINAL</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="navLogs">
+         <property name="text">
+          <string>LOGS</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="iconSettings">
+         <property name="text">
+          <string>⚙</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="iconPower">
+         <property name="text">
+          <string>⏻</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="bodyWidget">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="spacing">
+        <number>0</number>
        </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="sideBar">
+         <property name="minimumSize">
+          <size>
+           <width>250</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>250</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QFrame" name="userInfoBox">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QLabel" name="userIcon">
+               <property name="text">
+                <string>👤</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_2">
+               <item>
+                <widget class="QLabel" name="userTitle">
+                 <property name="text">
+                  <string>ARCHITECT_01</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="userSub">
+                 <property name="text">
+                  <string>LEVEL 4 ACCESS</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_com">
+            <property name="text">
+             <string>COM PORT</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="portCombo"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_baud">
+            <property name="text">
+             <string>BAUD RATE</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="baudCombo"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="initBtn">
+            <property name="text">
+             <string>INITIALIZE</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="menuDash">
+            <property name="text">
+             <string>Dashboard</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="menuHard">
+            <property name="text">
+             <string>Hardware</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="menuMod">
+            <property name="text">
+             <string>Modules</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="menuConn">
+            <property name="text">
+             <string>Connectivity</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="menuDiag">
+            <property name="text">
+             <string>Diagnostics</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="newModuleBtn">
+            <property name="text">
+             <string>NEW_MODULE</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="dashArea">
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QHBoxLayout" name="headerLayout">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <widget class="QLabel" name="dashTitle">
+                <property name="text">
+                 <string>HARDWARE_MONITOR</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="dashStatus">
+                <property name="text">
+                 <string>STATUS: CONNECTED_ACTIVE / UPTIME: 04:12:33</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="stat1">
+              <item>
+               <widget class="QLabel" name="lblCpu">
+                <property name="text">
+                 <string>CPU_LOAD</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="valCpu">
+                <property name="text">
+                 <string>12.4%</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="stat2">
+              <item>
+               <widget class="QLabel" name="lblMem">
+                <property name="text">
+                 <string>MEM_USE</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="valMem">
+                <property name="text">
+                 <string>256MB</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="stat3">
+              <item>
+               <widget class="QLabel" name="lblRef">
+                <property name="text">
+                 <string>REFRESH</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="valRef">
+                <property name="text">
+                 <string>250ms</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="row1">
+            <item>
+             <widget class="QFrame" name="tempPanel">
+              <layout class="QVBoxLayout" name="verticalLayout_5">
+               <item>
+                <widget class="QLabel" name="tempTitle">
+                 <property name="text">
+                  <string>■ CORE_TEMPERATURE</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="tempValue">
+                 <property name="text">
+                  <string>42.8 °C</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="chartLayout"/>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="actPanel">
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <item>
+                <widget class="QLabel" name="actTitle">
+                 <property name="text">
+                  <string>■ LIGHT_ACTUATORS</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="tgl1">
+                 <item>
+                  <widget class="QLabel" name="tgl1_sym">
+                   <property name="text">
+                    <string>●</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="tgl1_lbl">
+                   <property name="text">
+                    <string>STATUS_RED</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="hs1">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="tgl1_val">
+                   <property name="text">
+                    <string>[ ON ]</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="tgl2">
+                 <item>
+                  <widget class="QLabel" name="tgl2_sym">
+                   <property name="text">
+                    <string>○</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="tgl2_lbl">
+                   <property name="text">
+                    <string>ALARM_YELLOW</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="hs2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="tgl2_val">
+                   <property name="text">
+                    <string>[ OFF ]</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="tgl3">
+                 <item>
+                  <widget class="QLabel" name="tgl3_sym">
+                   <property name="text">
+                    <string>●</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="tgl3_lbl">
+                   <property name="text">
+                    <string>DEBUG_BLUE</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="hs3">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="tgl3_val">
+                   <property name="text">
+                    <string>[ ON ]</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <spacer name="vs1">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLabel" name="actDisable">
+                 <property name="text">
+                  <string>&lt;u&gt;DISABLE_ALL_OUTPUTS&lt;/u&gt;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="row2">
+            <item>
+             <widget class="QFrame" name="gpioPanel">
+              <layout class="QVBoxLayout" name="verticalLayout_7">
+               <item>
+                <widget class="QLabel" name="gpioTitle">
+                 <property name="text">
+                  <string>INPUT_GPIO_STATES</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QGridLayout" name="gpioGrid">
+                 <item row="0" column="0">
+                  <widget class="QFrame" name="g1"/>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QFrame" name="g2"/>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QFrame" name="g3"/>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QFrame" name="g4"/>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="termPanel">
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QLabel" name="termTitle">
+                   <property name="text">
+                    <string>📄 SERIAL_RAW_DATA_STREAM</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_3">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="termClear">
+                   <property name="text">
+                    <string>CLEAR_LOG</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="termExport">
+                   <property name="text">
+                    <string>EXPORT_CSV</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QTextBrowser" name="textBrowser"/>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>580</width>
-     <height>19</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>
