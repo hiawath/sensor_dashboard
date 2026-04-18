@@ -4,12 +4,12 @@
 #include <QMainWindow>
 #include <QSerialPort>
 #include <QTextBrowser>
-
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
-QT_END_NAMESPACE
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QComboBox>
+#include <QFrame>
 
 class MainWindow : public QMainWindow
 {
@@ -20,14 +20,21 @@ public:
     ~MainWindow();
 
 private slots:
-
-    void on_btnRead_clicked();
+    void onInitializeClicked();
     void readData();
 
 private:
-    Ui::MainWindow *ui;
-    QSerialPort *serial;
-    QTextBrowser *textBrowser;
+    void setupUI();
+    void applyStyles();
 
+    // Serial Communication
+    QSerialPort *serial;
+
+    // UI Elements
+    QTextBrowser *terminalDisplay;
+    QComboBox *portCombo;
+    QComboBox *baudCombo;
+    QPushButton *initBtn;
 };
+
 #endif // MAINWINDOW_H
