@@ -29,5 +29,6 @@ private:
 
     Ui::MainWindow *ui;
     QSerialPort *serial;
+    QByteArray m_serialBuffer;
 };
 #endif // MAINWINDOW_H

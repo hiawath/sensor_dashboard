@@ -16,8 +16,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(serial, &QSerialPort::readyRead, this, &MainWindow::readData);
     
     // Set default values
-    ui->portCombo->addItem("COM3 - SERIAL_DEV");
     ui->portCombo->addItem("ttyACM0");
+    ui->portCombo->addItem("ttyACM1");
     ui->baudCombo->addItem("9600");
     ui->baudCombo->addItem("115200");
     
@@ -275,9 +275,20 @@ void MainWindow::onInitializeClicked()
 }
 
 void MainWindow::readData() {
-    QByteArray data = serial->readAll();
-    if (!data.isEmpty()) {
-        QString text = QString::fromUtf8(data);
-        ui->textBrowser->append("<span style='color: #0aa;'>[RX] " + text + "</span>");
+    m_serialBuffer.append(serial->readAll());
+
+    while (m_serialBuffer.contains('\n')) {
+        int newlineIndex = m_serialBuffer.indexOf('\n');
+        QByteArray lineData = m_serialBuffer.left(newlineIndex);
+        m_serialBuffer.remove(0, newlineIndex + 1);
+
+        if (lineData.endsWith('\r')) {
+            lineData.chop(1);
+        }
+
+        if (!lineData.isEmpty()) {
+            QString text = QString::fromUtf8(lineData);
+            ui->textBrowser->append("<span style='color: #0aa;'>[RX] " + text + "</span>");
+        }
     }
 }
