@@ -39,7 +39,7 @@
        <item>
         <widget class="QLabel" name="topTitle">
          <property name="text">
-          <string>SERIAL_CORE_V1</string>
+          <string>STM32 Dashboard </string>
          </property>
         </widget>
        </item>
@@ -80,14 +80,14 @@
        <item>
         <widget class="QLabel" name="iconSettings">
          <property name="text">
-          <string>⚙</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;⚙&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="iconPower">
          <property name="text">
-          <string>⏻</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;⏻&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -180,7 +180,7 @@
          <item>
           <widget class="QPushButton" name="initBtn">
            <property name="text">
-            <string>INITIALIZE</string>
+            <string>Connect</string>
            </property>
           </widget>
          </item>
