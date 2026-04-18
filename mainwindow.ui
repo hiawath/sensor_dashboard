@@ -185,16 +185,16 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="menuDash">
+          <widget class="QPushButton" name="menuMonitorStart">
            <property name="text">
-            <string>Dashboard</string>
+            <string>Monitor Start</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="menuHard">
+          <widget class="QPushButton" name="menuMonitorStop">
            <property name="text">
-            <string>Hardware</string>
+            <string>Monitor Stop</string>
            </property>
           </widget>
          </item>
@@ -213,9 +213,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="menuDiag">
+          <widget class="QPushButton" name="menuLedBlink">
            <property name="text">
-            <string>Diagnostics</string>
+            <string>LED Bink 1초</string>
            </property>
           </widget>
          </item>

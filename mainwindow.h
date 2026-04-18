@@ -59,10 +59,17 @@ private slots:
     void readData();
     void onExitRequested();
 
+    void on_menuLedBlink_clicked();
+
+    void on_menuMonitorStart_clicked();
+
+    void on_menuMonitorStop_clicked();
+
 private:
     void applyStyles();
     void setupDynamicUI();
     void parseProtocol(const QString &data);
+    void monitor_Off();
     QString getLogColor(const QString &type);
 
     Ui::MainWindow *ui;
