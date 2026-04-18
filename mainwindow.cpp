@@ -9,9 +9,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     serial = new QSerialPort(this);
 
-    //setupDynamicUI();
-    //applyStyles();
+    setupDynamicUI();
+    applyStyles();
 
+    this->setProperty("theme", "white");
     ui->initBtn->setProperty("connected", false);
 
     connect(ui->initBtn, &QPushButton::clicked, this, &MainWindow::onInitializeClicked);
@@ -24,9 +25,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->baudCombo->addItem("115200");
     
     // Mock terminal initial data
-    ui->textBrowser->append("<span style='color: #44aaff;'>[14:22:01.03] TX >> 0x41 0x54 (AT+RST)</span>");
-    ui->textBrowser->append("<span style='color: #44aaff;'>[14:22:01.45] RX << 0x4F 0x4B (OK)</span>");
-    ui->textBrowser->append("<span style='color: #0f0; background-color: #004400;'>[14:22:02.35] INTERRUPT >> PIN_01 HIGH</span>");
+    ui->textBrowser->append(QString("<span style='color: %1;'>[14:22:01.03] TX >> 0x41 0x54 (AT+RST)</span>").arg(getLogColor("TX")));
+    ui->textBrowser->append(QString("<span style='color: %1;'>[14:22:01.45] RX << 0x4F 0x4B (OK)</span>").arg(getLogColor("RX")));
+    ui->textBrowser->append(QString("<span style='color: #0f0; background-color: #004400;'>[14:22:02.35] INTERRUPT >> PIN_01 HIGH</span>"));
 }
 
 MainWindow::~MainWindow()
@@ -75,186 +76,94 @@ void MainWindow::setupDynamicUI()
 void MainWindow::applyStyles()
 {
     QString qss = R"(
+        /* --- Base Layout --- */
         QWidget {
             font-family: 'Monospace';
             font-size: 12px;
+        }
+
+        /* --- Theme: WHITE (Neo-Brutalist) --- */
+        QMainWindow[theme="white"], QWidget[theme="white"] {
             background-color: #ffffff;
             color: #000000;
         }
-        QFrame#topBar {
-            border-bottom: 4px solid black;
+
+        /* --- Theme: DARK (Neo-Brutalist) --- */
+        QMainWindow[theme="dark"], QWidget[theme="dark"] {
+            background-color: #1a1a1a;
+            color: #ffffff;
         }
-        QLabel#topTitle {
-            font-size: 20px;
-            font-weight: bold;
-            color: #0022cc;
-            padding-left: 20px;
+        QMainWindow[theme="dark"] QFrame#userInfoBox, 
+        QMainWindow[theme="dark"] QFrame#tempPanel, 
+        QMainWindow[theme="dark"] QFrame#actPanel, 
+        QMainWindow[theme="dark"] QFrame#gpioPanel, 
+        QMainWindow[theme="dark"] QFrame#panelBox {
+            background-color: #2a2a2a;
+            border: 4px solid white;
+            border-bottom: 8px solid white;
+            border-right: 8px solid white;
         }
-        QLabel#navSystem {
-            font-weight: bold;
-            padding: 5px 10px;
-            border-bottom: 3px solid blue;
-            color: blue;
+        QMainWindow[theme="dark"] QPushButton {
+            background-color: #333333;
+            color: white;
+            border: 2px solid white;
         }
-        QLabel#navTerminal, QLabel#navLogs {
-            font-weight: bold;
-            padding: 5px 10px;
-        }
-        QLabel#iconSettings, QLabel#iconPower {
-            font-size: 24px;
-            padding: 0 10px;
-        }
-        QLabel#userIcon {
-            font-size: 32px;
-        }
-        QFrame#sideBar {
-            border-right: 4px solid black;
+        QMainWindow[theme="dark"] QLabel#topTitle { color: #5588ff; }
+        QMainWindow[theme="dark"] QLabel#userTitle { color: #5588ff; }
+
+        /* --- Components --- */
+        QFrame#topBar { border-bottom: 4px solid black; }
+        QMainWindow[theme="dark"] QFrame#topBar { border-bottom: 4px solid white; }
+        QFrame#sideBar { border-right: 4px solid black; }
+        QMainWindow[theme="dark"] QFrame#sideBar { border-right: 4px solid white; }
+
+        /* Panels & Boxes */
+        QFrame#userInfoBox, QFrame#tempPanel, QFrame#actPanel, QFrame#gpioPanel, QFrame#panelBox {
+            border: 4px solid black;
             background-color: #ffffff;
+            border-bottom: 8px solid black;
+            border-right: 8px solid black;
         }
-        QLabel#userTitle {
-            font-weight: bold;
-            color: blue;
-            font-size: 14px;
-        }
-        QLabel#userSub {
-            font-size: 10px;
-            color: gray;
-        }
-        QLabel#label_com, QLabel#label_baud {
-            font-size: 10px;
-            font-weight: bold;
-            color: #333;
-        }
-        QComboBox {
-            border: 2px solid black;
-            padding: 5px;
-            background-color: #fff;
-            font-weight: bold;
-        }
+
+        /* --- Specialized Colors --- */
+        QLabel#topTitle { font-size: 20px; font-weight: bold; color: #0022cc; }
+        QLabel#userTitle { font-weight: bold; color: blue; }
+        QLabel#dashTitle { font-size: 36px; font-weight: 900; }
+        QLabel#tempValue { font-size: 64px; font-weight: 900; }
+        
+        /* Buttons */
         QPushButton {
             border: 2px solid black;
             padding: 10px;
             font-weight: bold;
-            background-color: #fff;
+            background-color: #ffffff;
         }
-        QPushButton#initBtn[connected="false"] {
-            background-color: gray;
-            color: white;
+        QPushButton:pressed {
+            margin-top: 2px; margin-left: 2px;
+            border-bottom: 2px solid black; border-right: 2px solid black;
+        }
+
+        /* --- Dynamic States --- */
+        
+        /* Connect Button State */
+        QPushButton#initBtn[connected="false"] { background-color: #aaaaaa; color: white; }
+        QPushButton#initBtn[connected="true"]  { background-color: #00aa00; color: white; }
+
+        /* LED / Toggle States */
+        QLabel[active="true"] { color: blue; }
+        QLabel#tgl1_val, QLabel#tgl2_val, QLabel#tgl3_val {
+            background-color: #eeeeee;
             border: 2px solid black;
-            border-bottom: 4px solid black;
-            border-right: 4px solid black;
+            padding: 5px;
         }
-        QPushButton#initBtn[connected="true"] {
-            background-color: #00aa00;
-            color: white;
-            border: 2px solid black;
-            border-bottom: 4px solid black;
-            border-right: 4px solid black;
-        }
-        QPushButton#initBtn:pressed {
-            border-bottom: 2px solid black;
-            border-right: 2px solid black;
-            margin-top: 2px;
-            margin-left: 2px;
-        }
-        QPushButton#newModuleBtn {
-            background-color: #fff;
-            border: 2px solid black;
-            border-bottom: 4px solid black;
-            border-right: 4px solid black;
-            margin: 10px;
-        }
-        QPushButton#menuHard, QPushButton#menuMod, QPushButton#menuConn, QPushButton#menuDiag {
-            border: none;
-            border-bottom: 1px solid #ccc;
-            text-align: left;
-            padding-left: 20px;
-        }
-        QPushButton#menuDash {
-            border: none;
-            border-bottom: 1px solid #ccc;
-            text-align: left;
-            padding-left: 20px;
-            background-color: #0022cc;
+        QLabel#tgl1_val[active="true"], QLabel#tgl2_val[active="true"], QLabel#tgl3_val[active="true"] {
+            background-color: blue;
             color: white;
         }
-        QLabel#dashTitle {
-            font-size: 36px;
-            font-weight: 900;
-            letter-spacing: 2px;
-        }
-        QLabel#dashStatus {
-            font-size: 12px;
-            font-weight: bold;
-            color: gray;
-        }
-        QLabel#valCpu, QLabel#valMem, QLabel#valRef {
-            font-size: 18px;
-            font-weight: bold;
-            color: blue;
-        }
-        QLabel#lblCpu, QLabel#lblMem, QLabel#lblRef {
-            font-size: 10px;
-            font-weight: bold;
-            color: #333;
-        }
-        QFrame#userInfoBox, QFrame#tempPanel, QFrame#actPanel, QFrame#gpioPanel {
-            border: 4px solid black;
-            background-color: #fff;
-            padding: 10px;
-            border-bottom: 8px solid black;
-            border-right: 8px solid black;
-        }
-        QFrame#panelBoxActive {
-            border: 4px solid blue;
-            background-color: #fff;
-            padding: 10px;
-            border-bottom: 8px solid blue;
-            border-right: 8px solid blue;
-        }
-        QFrame#panelBox {
-            border: 4px solid black;
-            background-color: #fff;
-            padding: 10px;
-            border-bottom: 8px solid black;
-            border-right: 8px solid black;
-        }
-        QLabel#tempTitle, QLabel#actTitle, QLabel#gpioTitle {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        QLabel#actTitle {
-            color: red;
-        }
-        QLabel#tempValue {
-            font-size: 64px;
-            font-weight: 900;
-        }
-        QFrame#termPanel {
-            background-color: #222;
-            border: 4px solid black;
-            padding: 10px;
-        }
-        QLabel#termTitle {
-            color: white;
-            font-weight: bold;
-        }
-        QLabel#termClear, QLabel#termExport {
-            color: white;
-            font-size: 10px;
-            text-decoration: underline;
-        }
-        QTextBrowser#textBrowser {
-            background-color: #222;
-            color: #ccc;
-            border: none;
-            font-family: 'Monospace';
-        }
-        QLabel#tgl1_sym, QLabel#tgl3_sym { color: blue; font-size: 20px; }
-        QLabel#tgl2_sym { color: gray; font-size: 20px; }
-        QLabel#tgl1_val, QLabel#tgl3_val { background-color: blue; color: white; padding: 5px; border: 2px solid black; font-weight: bold;}
-        QLabel#tgl2_val { background-color: #ddd; color: black; padding: 5px; border: 2px solid black; font-weight: bold;}
+
+        /* Terminal */
+        QFrame#termPanel { background-color: #222222; border: 4px solid black; }
+        QTextBrowser#textBrowser { background-color: #222222; color: #cccccc; border: none; }
     )";
     this->setStyleSheet(qss);
 }
@@ -267,7 +176,7 @@ void MainWindow::onInitializeClicked()
         ui->initBtn->setProperty("connected", false);
         ui->initBtn->style()->unpolish(ui->initBtn);
         ui->initBtn->style()->polish(ui->initBtn);
-        ui->textBrowser->append("<span style='color: yellow;'>[SYS] Port Closed</span>");
+        ui->textBrowser->append(QString("<span style='color: %1;'>[SYS] Port Closed</span>").arg(getLogColor("SYS")));
         ui->dashStatus->setText("STATUS: <span style='color:gray;'>DISCONNECTED</span>");
         return;
     }
@@ -277,7 +186,7 @@ void MainWindow::onInitializeClicked()
         serial->setPortName("ttyACM0");
     } else {
         serial->setPortName(portName);
-        ui->textBrowser->append("<span style='color: yellow;'>[SYS] Attempting to open " + portName + "</span>");
+        ui->textBrowser->append(QString("<span style='color: %1;'>[SYS] Attempting to open %2</span>").arg(getLogColor("SYS"), portName));
     }
     
     int baud = ui->baudCombo->currentText().toInt();
@@ -288,7 +197,7 @@ void MainWindow::onInitializeClicked()
     serial->setFlowControl(QSerialPort::NoFlowControl);
 
     if(serial->open(QIODevice::ReadWrite)){
-        ui->textBrowser->append("<span style='color: #0f0;'>[SYS] Connection : Port Opened at " + QString::number(baud) + " bps</span>");
+        ui->textBrowser->append(QString("<span style='color: %1;'>[SYS] Connection : Port Opened at %2 bps</span>").arg(getLogColor("SYS"), QString::number(baud)));
         ui->initBtn->setText("Connected");
         ui->initBtn->setProperty("connected", true);
         ui->initBtn->style()->unpolish(ui->initBtn);
@@ -296,7 +205,7 @@ void MainWindow::onInitializeClicked()
         ui->dashStatus->setText("STATUS: <span style='color:blue;'>CONNECTED_ACTIVE</span> / UPTIME: 04:12:33");
     }
     else{
-        ui->textBrowser->append("<span style='color: red;'>[ERR] Failed to open port!</span>");
+        ui->textBrowser->append(QString("<span style='color: %1;'>[ERR] Failed to open port!</span>").arg(getLogColor("ERR")));
         ui->initBtn->setText("Disconnected");
         ui->initBtn->setProperty("connected", false);
         ui->initBtn->style()->unpolish(ui->initBtn);
@@ -320,10 +229,19 @@ void MainWindow::readData() {
 
         if (!packet.isEmpty()) {
             QString packetStr = QString::fromUtf8(packet);
-            ui->textBrowser->append("<span style='color: #0aa;'>[RX] $" + packetStr + "#</span>");
+            ui->textBrowser->append(QString("<span style='color: %1;'>[RX] $%2#</span>").arg(getLogColor("RX"), packetStr));
             parseProtocol(packetStr);
         }
     }
+}
+
+QString MainWindow::getLogColor(const QString &type) {
+    bool isDark = (this->property("theme").toString() == "dark");
+    if (type == "SYS") return isDark ? "#ffff00" : "#aa6600";
+    if (type == "ERR") return "#ff0000";
+    if (type == "TX")  return isDark ? "#44aaff" : "#0055ff";
+    if (type == "RX")  return isDark ? "#00ffff" : "#008888";
+    return isDark ? "#ffffff" : "#000000";
 }
 
 void MainWindow::parseProtocol(const QString &data) {
@@ -346,15 +264,16 @@ void MainWindow::parseProtocol(const QString &data) {
         } else if (sensorId == ID_OUT_LED_STATE) {
             // LED 상태 업데이트 (STATUS_RED에 적용)
             bool isOn = (valueStr.toInt() != 0);
-            if (isOn) {
-                ui->tgl1_val->setText("[ ON ]");
-                ui->tgl1_val->setStyleSheet("background-color: blue; color: white; padding: 5px; border: 2px solid black; font-weight: bold;");
-                ui->tgl1_sym->setStyleSheet("color: blue; font-size: 20px;");
-            } else {
-                ui->tgl1_val->setText("[ OFF ]");
-                ui->tgl1_val->setStyleSheet("background-color: #ddd; color: black; padding: 5px; border: 2px solid black; font-weight: bold;");
-                ui->tgl1_sym->setStyleSheet("color: gray; font-size: 20px;");
-            }
+            
+            ui->tgl1_val->setText(isOn ? "[ ON ]" : "[ OFF ]");
+            ui->tgl1_val->setProperty("active", isOn);
+            ui->tgl1_sym->setProperty("active", isOn);
+
+            // 스타일 갱신 (Dynamic Property 반영)
+            ui->tgl1_val->style()->unpolish(ui->tgl1_val);
+            ui->tgl1_val->style()->polish(ui->tgl1_val);
+            ui->tgl1_sym->style()->unpolish(ui->tgl1_sym);
+            ui->tgl1_sym->style()->polish(ui->tgl1_sym);
         }
     }
 }

@@ -59,6 +59,7 @@ private:
     void applyStyles();
     void setupDynamicUI();
     void parseProtocol(const QString &data);
+    QString getLogColor(const QString &type);
 
     Ui::MainWindow *ui;
     QSerialPort *serial;
