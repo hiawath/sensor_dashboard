@@ -3,18 +3,17 @@
 #include <QEvent>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QTime>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
-  serial = new QSerialPort(this);
+  m_viewModel = new DashboardViewModel(this);
 
   // Minimize, Maximize 버튼 제거
   setWindowFlags(windowFlags() & ~Qt::WindowMinimizeButtonHint &
                  ~Qt::WindowMaximizeButtonHint &
                  ~Qt::WindowContextHelpButtonHint);
-  // 타이틀 바와 테두리를 완전히 제거
-  // setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 
   setupDynamicUI();
   applyStyles();
@@ -26,9 +25,16 @@ MainWindow::MainWindow(QWidget *parent)
   ui->iconSettings->installEventFilter(this);
   ui->iconPower->installEventFilter(this);
 
-  connect(ui->initBtn, &QPushButton::clicked, this,
-          &MainWindow::onInitializeClicked);
-  connect(serial, &QSerialPort::readyRead, this, &MainWindow::readData);
+  // ViewModel Connections
+  connect(m_viewModel, &DashboardViewModel::temperatureChanged, this, &MainWindow::updateTemperature);
+  connect(m_viewModel, &DashboardViewModel::connectionChanged, this, &MainWindow::updateConnectionState);
+  connect(m_viewModel, &DashboardViewModel::ledActiveChanged, this, &MainWindow::updateLedState);
+  connect(m_viewModel, &DashboardViewModel::logMessage, this, &MainWindow::appendLog);
+  connect(m_viewModel, &DashboardViewModel::rawDataReceived, [this](const QString &packet) {
+      // Any additional raw data handling if needed
+  });
+
+  connect(ui->initBtn, &QPushButton::clicked, this, &MainWindow::onInitializeClicked);
 
   // Set default values
   ui->portCombo->addItem("ttyACM0");
@@ -36,17 +42,8 @@ MainWindow::MainWindow(QWidget *parent)
   ui->baudCombo->addItem("9600");
   ui->baudCombo->addItem("115200");
 
-  // Mock terminal initial data
-  ui->textBrowser->append(QString("<span style='color: %1;'>[14:22:01.03] TX "
-                                  ">> 0x41 0x54 (AT+RST)</span>")
-                              .arg(getLogColor("TX")));
-  ui->textBrowser->append(
-      QString(
-          "<span style='color: %1;'>[14:22:01.45] RX << 0x4F 0x4B (OK)</span>")
-          .arg(getLogColor("RX")));
-  ui->textBrowser->append(
-      QString("<span style='color: #0f0; background-color: "
-              "#004400;'>[14:22:02.35] INTERRUPT >> PIN_01 HIGH</span>"));
+  // Initial log
+  appendLog("SYS", "Application Started");
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -188,137 +185,55 @@ void MainWindow::applyStyles() {
 }
 
 void MainWindow::onInitializeClicked() {
-  if (serial->isOpen()) {
-    serial->close();
-    ui->initBtn->setText("Disconnected");
-    ui->initBtn->setProperty("connected", false);
-    ui->initBtn->style()->unpolish(ui->initBtn);
-    ui->initBtn->style()->polish(ui->initBtn);
-    ui->textBrowser->append(
-        QString("<span style='color: %1;'>[SYS] Port Closed</span>")
-            .arg(getLogColor("SYS")));
-    ui->dashStatus->setText(
-        "STATUS: <span style='color:gray;'>DISCONNECTED</span>");
+  if (m_viewModel->isConnected()) {
+    m_viewModel->disconnectDevice();
     return;
   }
 
   QString portName = ui->portCombo->currentText();
-  if (portName.contains("ttyACM0")) {
-    serial->setPortName("ttyACM0");
-  } else {
-    serial->setPortName(portName);
-    ui->textBrowser->append(
-        QString("<span style='color: %1;'>[SYS] Attempting to open %2</span>")
-            .arg(getLogColor("SYS"), portName));
-  }
-
   int baud = ui->baudCombo->currentText().toInt();
-  serial->setBaudRate(baud);
-  serial->setDataBits(QSerialPort::Data8);
-  serial->setParity(QSerialPort::NoParity);
-  serial->setStopBits(QSerialPort::OneStop);
-  serial->setFlowControl(QSerialPort::NoFlowControl);
+  
+  appendLog("SYS", QString("Attempting to open %1 at %2 bps").arg(portName, QString::number(baud)));
+  m_viewModel->connectDevice(portName, baud);
+}
 
-  if (serial->open(QIODevice::ReadWrite)) {
-    ui->textBrowser->append(
-        QString("<span style='color: %1;'>[SYS] Connection : Port Opened at %2 "
-                "bps</span>")
-            .arg(getLogColor("SYS"), QString::number(baud)));
-    ui->initBtn->setText("Connected");
-    ui->initBtn->setProperty("connected", true);
-    ui->initBtn->style()->unpolish(ui->initBtn);
-    ui->initBtn->style()->polish(ui->initBtn);
-    ui->dashStatus->setText(
-        "STATUS: <span style='color:blue;'>CONNECTED_ACTIVE</span> / UPTIME: "
-        "04:12:33");
+void MainWindow::updateTemperature(const QString &temp) {
+  ui->tempValue->setText(temp);
+  // Extract number for chart
+  QString numPart = temp.split(' ').first();
+  updateChart(numPart.toDouble());
+}
+
+void MainWindow::updateConnectionState(bool connected) {
+  ui->initBtn->setText(connected ? "Connected" : "Disconnected");
+  ui->initBtn->setProperty("connected", connected);
+  ui->initBtn->style()->unpolish(ui->initBtn);
+  ui->initBtn->style()->polish(ui->initBtn);
+  
+  if (connected) {
+    ui->dashStatus->setText("STATUS: <span style='color:blue;'>CONNECTED_ACTIVE</span> / UPTIME: 00:00:00");
   } else {
-    ui->textBrowser->append(
-        QString("<span style='color: %1;'>[ERR] Failed to open port!</span>")
-            .arg(getLogColor("ERR")));
-    ui->initBtn->setText("Disconnected");
-    ui->initBtn->setProperty("connected", false);
-    ui->initBtn->style()->unpolish(ui->initBtn);
-    ui->initBtn->style()->polish(ui->initBtn);
-  }
-}
-static bool isMonitorOn = false;
-void MainWindow::readData() {
-  m_serialBuffer.append(serial->readAll());
-
-  // 데이터가 '$'와 '#'를 모두 포함하고 있는지 확인
-  while (m_serialBuffer.contains('$') && m_serialBuffer.contains('#')) {
-    int start = m_serialBuffer.indexOf('$');
-    int end = m_serialBuffer.indexOf('#', start);
-
-    if (end == -1)
-      break; // 불완전한 패킷
-
-    // '$'와 '#' 사이의 데이터 추출
-    QByteArray packet = m_serialBuffer.mid(start + 1, end - start - 1);
-    m_serialBuffer.remove(0, end + 1);
-
-    if (!packet.isEmpty() && isMonitorOn) {
-      QString packetStr = QString::fromUtf8(packet);
-      ui->textBrowser->append(
-          QString("<span style='color: %1;'>[RX] $%2#</span>")
-              .arg(getLogColor("RX"), packetStr));
-      parseProtocol(packetStr);
-    }
+    ui->dashStatus->setText("STATUS: <span style='color:gray;'>DISCONNECTED</span>");
   }
 }
 
-QString MainWindow::getLogColor(const QString &type) {
-  bool isDark = (this->property("theme").toString() == "dark");
-  if (type == "SYS")
-    return isDark ? "#ffff00" : "#aa6600";
-  if (type == "ERR")
-    return "#ff0000";
-  if (type == "TX")
-    return isDark ? "#44aaff" : "#0055ff";
-  if (type == "RX")
-    return isDark ? "#00ffff" : "#008888";
-  return isDark ? "#ffffff" : "#000000";
+void MainWindow::updateLedState(bool active) {
+  ui->tgl1_val->setText(active ? "[ ON ]" : "[ OFF ]");
+  ui->tgl1_val->setProperty("active", active);
+  ui->tgl1_sym->setProperty("active", active);
+
+  ui->tgl1_val->style()->unpolish(ui->tgl1_val);
+  ui->tgl1_val->style()->polish(ui->tgl1_val);
+  ui->tgl1_sym->style()->unpolish(ui->tgl1_sym);
+  ui->tgl1_sym->style()->polish(ui->tgl1_sym);
 }
 
-void MainWindow::parseProtocol(const QString &data) {
-  // 형식: count,id:type:val,id:type:val
-  QStringList parts = data.split(',');
-  if (parts.size() < 2)
-    return;
-  if (parts[0].toInt(NULL, 10) < 2)
-    return;
-
-  // parts[0]은 데이터 갯수, parts[1]부터 실제 데이터
-  for (int i = 1; i < parts.size(); ++i) {
-    QStringList item = parts[i].split(':');
-    if (item.size() < 3)
-      continue;
-
-    int sensorId = item[0].toInt();
-    // int type = item[1].toInt(); // DataType (사용하지 않음)
-    QString valueStr = item[2];
-
-    if (sensorId == ID_ENV_TEMP) {
-      // 온도 업데이트
-      double tempVal = valueStr.toDouble();
-      ui->tempValue->setText(valueStr + " °C");
-      updateChart(tempVal);
-    } else if (sensorId == ID_OUT_LED_STATE) {
-      // LED 상태 업데이트 (STATUS_RED에 적용)
-      bool isOn = (valueStr.toInt() != 0);
-
-      ui->tgl1_val->setText(isOn ? "[ ON ]" : "[ OFF ]");
-      ui->tgl1_val->setProperty("active", isOn);
-      ui->tgl1_sym->setProperty("active", isOn);
-
-      // 스타일 갱신 (Dynamic Property 반영)
-      ui->tgl1_val->style()->unpolish(ui->tgl1_val);
-      ui->tgl1_val->style()->polish(ui->tgl1_val);
-      ui->tgl1_sym->style()->unpolish(ui->tgl1_sym);
-      ui->tgl1_sym->style()->polish(ui->tgl1_sym);
-    }
-  }
+void MainWindow::appendLog(const QString &type, const QString &msg) {
+  QString timeStr = QTime::currentTime().toString("hh:mm:ss.zzz");
+  ui->textBrowser->append(QString("<span style='color: %1;'>[%2] [%3] %4</span>")
+      .arg(getLogColor(type), timeStr, type, msg));
 }
+// Logic moved to SensorModel and DashboardViewModel
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
   if ((obj == ui->iconSettings || obj == ui->iconPower) &&
@@ -334,72 +249,31 @@ void MainWindow::onExitRequested() {
       this, "프로그램 종료", "프로그램을 종료하시겠습니까?",
       QMessageBox::Yes | QMessageBox::No);
   if (res == QMessageBox::Yes) {
-    monitor_Off();
-    isMonitorOn = false;
+    m_viewModel->setMonitor(false);
+    m_viewModel->disconnectDevice();
     this->close();
   }
 }
 
 void MainWindow::on_menuLedBlink_clicked() {
-  if (serial->isOpen()) {
-    // 1. 전송할 문자열 가져오기
-    QString str = "led toggle 1000\r\n";
-
-    // 2. 문자열을 바이트 배열로 변환하여 전송
-    // 끝에 개행 문자(\n)가 필요한 경우가 많으므로 확인 필요
-    qint64 bytesWritten = serial->write(str.toUtf8());
-
-    // 3. (선택) 즉시 전송 보장
-    serial->flush();
-
-    if (bytesWritten == -1) {
-      ui->textBrowser->append("전송 실패!");
-    } else {
-      ui->textBrowser->append("TX -> " + str);
-    }
-  }
+  m_viewModel->toggleLed();
 }
 
 void MainWindow::on_menuMonitorStart_clicked() {
-
-  if (serial->isOpen()) {
-    QString str = "monitor on 100\r\n";
-
-    qint64 bytesWritten = serial->write(str.toUtf8());
-
-    serial->flush();
-
-    if (bytesWritten == -1) {
-      ui->textBrowser->append("전송 실패!");
-    } else {
-      ui->textBrowser->append("TX -> " + str);
-      isMonitorOn = true;
-    }
-  }
+  m_viewModel->setMonitor(true);
 }
 
-void MainWindow::on_menuMonitorStop_clicked() { monitor_Off(); }
+void MainWindow::on_menuMonitorStop_clicked() {
+  m_viewModel->setMonitor(false);
+}
 
-void MainWindow::monitor_Off() {
-
-  if (serial->isOpen()) {
-    // 1. 전송할 문자열 가져오기
-    QString str = "temp\r\n";
-    qint64 bytesWritten = serial->write(str.toUtf8());
-    serial->flush();
-
-    str = "monitor off\r\n";
-    bytesWritten = serial->write(str.toUtf8());
-
-    serial->flush();
-
-    if (bytesWritten == -1) {
-      ui->textBrowser->append("전송 실패!");
-    } else {
-      ui->textBrowser->append("TX -> " + str);
-      isMonitorOn = false;
-    }
-  }
+QString MainWindow::getLogColor(const QString &type) {
+  bool isDark = (this->property("theme").toString() == "dark");
+  if (type == "SYS") return isDark ? "#ffff00" : "#aa6600";
+  if (type == "ERR") return "#ff0000";
+  if (type == "TX")  return isDark ? "#44aaff" : "#0055ff";
+  if (type == "RX")  return isDark ? "#00ffff" : "#008888";
+  return isDark ? "#ffffff" : "#000000";
 }
 void MainWindow::updateChart(double newValue) {
   if (m_chartWidget) m_chartWidget->addData(newValue);

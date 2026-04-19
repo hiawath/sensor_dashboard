@@ -14,9 +14,16 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
         main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
+        view/mainwindow.cpp
+        view/mainwindow.h
+        view/mainwindow.ui
+        model/serial_device.cpp
+        model/serial_device.h
+        model/sensor_model.cpp
+        model/sensor_model.h
+        viewmodel/dashboard_viewmodel.cpp
+        viewmodel/dashboard_viewmodel.h
+        model/serial_protocol.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -48,7 +55,12 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS  SerialPort)
 target_link_libraries(QT_Dashboard PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::SerialPort
+)
 
+target_include_directories(QT_Dashboard PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/model
+    ${CMAKE_CURRENT_SOURCE_DIR}/view
+    ${CMAKE_CURRENT_SOURCE_DIR}/viewmodel
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
