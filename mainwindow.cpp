@@ -52,19 +52,12 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::setupDynamicUI() {
-  // Generate the temperature chart bars dynamically
-  ui->chartLayout->setSpacing(2);
-  ui->chartLayout->setAlignment(Qt::AlignBottom);
-  for (int i = 0; i < 15; ++i) {
-    QFrame *bar = new QFrame(this);
-    bar->setFixedWidth(15);
-    bar->setFixedHeight(20 + i * 5);
-    int b = 255 - (i * 10);
-    bar->setStyleSheet(
-        QString("background-color: rgb(%1, %1, 255); border: 1px solid black;")
-            .arg(b));
-    ui->chartLayout->addWidget(bar);
-  }
+  // Generate the temperature chart dynamically
+  ui->chartLayout->setSpacing(0);
+  ui->chartLayout->setContentsMargins(0, 0, 0, 0);
+  
+  m_chartWidget = new ChartWidget(600, 10.0, 50.0, QColor(0, 34, 204), this);
+  ui->chartLayout->addWidget(m_chartWidget);
 
   // Setup GPIO buttons dynamically
   auto setupGpio = [this](QFrame *gBox, QString name, bool active) {
@@ -90,10 +83,14 @@ void MainWindow::setupDynamicUI() {
     gL->addWidget(lbl, 0, Qt::AlignCenter);
     gL->addWidget(stat, 0, Qt::AlignCenter);
   };
-  setupGpio(ui->g1, "BTN_01", true);
-  setupGpio(ui->g2, "BTN_02", false);
-  setupGpio(ui->g3, "BTN_03", false);
-  setupGpio(ui->g4, "BTN_04", false);
+  // setupGpio(ui->g1, "BTN_01", true);
+  // setupGpio(ui->g2, "BTN_02", false);
+  // setupGpio(ui->g3, "BTN_03", false);
+  // setupGpio(ui->g4, "BTN_04", false);
+  
+  // Real-time Live Chart (50 points)
+  m_liveChart = new ChartWidget(50, 10.0, 50.0, QColor(204, 34, 0), this);
+  ui->gpioGrid->addWidget(m_liveChart);
 }
 
 void MainWindow::applyStyles() {
@@ -303,7 +300,9 @@ void MainWindow::parseProtocol(const QString &data) {
 
     if (sensorId == ID_ENV_TEMP) {
       // 온도 업데이트
+      double tempVal = valueStr.toDouble();
       ui->tempValue->setText(valueStr + " °C");
+      updateChart(tempVal);
     } else if (sensorId == ID_OUT_LED_STATE) {
       // LED 상태 업데이트 (STATUS_RED에 적용)
       bool isOn = (valueStr.toInt() != 0);
@@ -401,4 +400,8 @@ void MainWindow::monitor_Off() {
       isMonitorOn = false;
     }
   }
+}
+void MainWindow::updateChart(double newValue) {
+  if (m_chartWidget) m_chartWidget->addData(newValue);
+  if (m_liveChart) m_liveChart->addData(newValue);
 }
