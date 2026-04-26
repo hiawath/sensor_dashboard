@@ -1,0 +1,5 @@
+- [x] Rewrite `mainwindow.ui` XML to define the structured layout (TopBar, Sidebar, Dashboard panels).
+- [x] Update `mainwindow.h` to declare UI slots and retain the `Ui::MainWindow` pointer.
+- [x] Update `mainwindow.cpp` to use `ui->setupUi(this)`, populate dynamic UI components, and apply the Neo-Brutalist QSS.
+- [x] Connect the serial logic.
+- [x] Build the project via CMake and verify.
